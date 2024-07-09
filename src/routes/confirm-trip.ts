@@ -5,6 +5,7 @@ import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { dayjs } from "../lib/dayjs";
 import { getMailClient } from "../lib/mail";
+import nodemailer from "nodemailer";
 
 export async function confirmTrip(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().get(
@@ -52,11 +53,36 @@ export async function confirmTrip(app: FastifyInstance) {
       const formattedStartDate = dayjs(trip.starts_at).format("LL");
       const formattedEndDate = dayjs(trip.ends_at).format("LL");
 
-      const confirmationLink = `http://localhost:3333/trips/${trip.id}/confirm/ID_PARTICIPANTE`;
-
       const mail = await getMailClient();
+      await Promise.all(
+        trip.participants.map(async (participant) => {
+          const confirmationLink = `http://localhost:3333/trips/${trip.id}/confirm/${participant.id}`;
 
-      return { tripId: request.params.tripId };
+          const message = await mail.sendMail({
+            from: {
+              name: "Equipe Planner",
+              address: "teste@plann.er",
+            },
+            to: participant.email,
+            subject: `Confirme sua presenca na viagem para ${trip.destination} em ${formattedStartDate}`,
+            html: `
+            <div style="font-family: sans-serif; font-size: 16px; line-height: 1.6;">
+              <p>Voce foi convidado para participar de uma viagem para <strong>${trip.destination}</strong> nas datas de <strong>${formattedStartDate}</strong> ate <strong>${formattedEndDate}</strong></p>
+              <p></p>
+              <p>Para confirmar a sua presenca na viagem, clique no link abaixo:</p>
+              <p></p>
+              <p><a href="${confirmationLink}">Confirmar presenca</a></p>
+              <p></p>
+              <p>Caso voce nao saiba do que se trata esse email ou nao podera estar presente, apenas ignore esse email</p>
+            </div>
+            `.trim(),
+          });
+
+          console.log(nodemailer.getTestMessageUrl(message));
+        })
+      );
+
+      return reply.redirect(`https://localhost:3000/trips/${tripId}`);
     }
   );
 }
