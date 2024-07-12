@@ -1,7 +1,10 @@
 import fastify from "fastify";
+import fastifySwagger from "@fastify/swagger";
+import fastifySwaggerUI from "@fastify/swagger-ui";
 import cors from "@fastify/cors";
 import { createTrip } from "./routes/create-trip";
 import {
+  jsonSchemaTransform,
   serializerCompiler,
   validatorCompiler,
 } from "fastify-type-provider-zod";
@@ -22,6 +25,24 @@ import { env } from "./env";
 const app = fastify();
 app.register(cors, {
   origin: "*", //CHANGE ON PROD
+});
+
+app.register(fastifySwagger, {
+  swagger: {
+    consumes: ["application/json"],
+    produces: ["application/json"],
+    info: {
+      title: "plann.er",
+      description:
+        "Especificações da API para o back-end da aplicação plann.er construída durante o NLW Journey da Rocketseat.",
+      version: "1.0.0",
+    },
+  },
+  transform: jsonSchemaTransform,
+});
+
+app.register(fastifySwaggerUI, {
+  routePrefix: "/docs",
 });
 
 app.setErrorHandler(errorHandler);
