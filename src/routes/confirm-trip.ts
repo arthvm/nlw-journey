@@ -79,8 +79,6 @@ export async function confirmTrip(app: FastifyInstance) {
             </div>
             `.trim(),
           });
-
-          console.log(nodemailer.getTestMessageUrl(message));
         })
       );
 

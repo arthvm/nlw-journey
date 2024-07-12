@@ -68,8 +68,6 @@ export async function createInvite(app: FastifyInstance) {
             `.trim(),
       });
 
-      console.log(nodemailer.getTestMessageUrl(message));
-
       return { participantId: participant.id };
     }
   );
