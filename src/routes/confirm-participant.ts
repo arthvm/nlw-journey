@@ -7,17 +7,21 @@ import { ClientError } from "../errors/client-error";
 import { env } from "../env";
 
 export async function confirmParticipant(app: FastifyInstance) {
-  app.withTypeProvider<ZodTypeProvider>().get(
+  app.withTypeProvider<ZodTypeProvider>().post(
     "/participants/:participantId/confirm",
     {
       schema: {
         params: z.object({
           participantId: z.string().uuid(),
         }),
+        body: z.object({
+          participantName: z.string(),
+        }),
       },
     },
     async (request, reply) => {
       const { participantId } = request.params;
+      const { participantName } = request.body;
 
       const participant = await prisma.participant.findUnique({
         where: {
@@ -40,6 +44,7 @@ export async function confirmParticipant(app: FastifyInstance) {
           id: participantId,
         },
         data: {
+          name: participantName,
           is_confirmed: true,
         },
       });
