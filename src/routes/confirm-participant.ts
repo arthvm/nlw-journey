@@ -33,10 +33,10 @@ export async function confirmParticipant(app: FastifyInstance) {
         throw new ClientError("Participant not found.");
       }
 
+      const redirectUrl = `${env.WEB_BASE_URL}/trips/${participant.trip_id}`;
+
       if (participant.is_confirmed) {
-        return reply.redirect(
-          `${env.WEB_BASE_URL}/trips/${participant.trip_id}`
-        );
+        return reply.send({ redirectUrl }).code(200);
       }
 
       await prisma.participant.update({
@@ -49,7 +49,7 @@ export async function confirmParticipant(app: FastifyInstance) {
         },
       });
 
-      return reply.redirect(`${env.WEB_BASE_URL}/trips/${participant.trip_id}`);
+      return reply.send({ redirectUrl }).code(200);
     }
   );
 }
